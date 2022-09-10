@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+  <mapper namespace="team3.dao.SchDao">
+  	<select id="schList" resultType="schguitar" parameterType="schguitar">
+      SELECT *
+      FROM guitar
+      WHERE 1=1
+      <if test="gname!=null">
+      AND gname LIKE '%'|| #{gname} ||'%'
+      </if>
+      <if test="standard!=null or standard1!=null or standard2!=null">
+	      AND (
+	      <trim prefixOverrides="OR">
+	      <if test="standard!=null">
+	      standard = #{standard} 
+	      </if>
+	      <if test="standard1!=null">
+	      OR standard = #{standard1}
+	      </if>
+	      <if test="standard2!=null">
+	      OR standard = #{standard2} 
+	      </if>
+	      </trim>
+	      )
+      </if>
+      <if test="neck!=null or neck1!=null or neck2!=null">
+	      AND ( 
+	      <trim prefixOverrides="OR">
+	     
+	      <if test="neck!=null">
+	      neck = #{neck} 
+	      </if>
+	      <if test="neck1!=null">
+	      OR neck = #{neck1} 
+	      </if>
+	      <if test="neck2!=null">
+	      OR neck = #{neck2} 
+	      </if>
+	       </trim>
+	      )
+      </if>
+      <if test="brand!=null or brand1!=null or brand2!=null or brand3!=null or brand4!=null or brand5!=null">
+	      AND ( 
+	      <trim prefixOverrides="OR">
+	      <if test="brand!=null">
+	      brand = #{brand} 
+	      </if>
+	      <if test="brand1!=null">
+	      OR brand = #{brand1}
+	      </if>
+	      <if test="brand2!=null">
+	      OR brand = #{brand2}
+	      </if>
+	      <if test="brand3!=null"> 
+	      OR brand = #{brand3}
+	      </if>
+	      <if test="brand4!=null"> 
+	      OR brand = #{brand4}
+	      </if>
+	      <if test="brand5!=null"> 
+	      OR brand = #{brand5}
+	      </if>
+	      </trim>
+	      )
+      </if>
+	</select>
+	
+	<select id="compare" resultType="schguitar" parameterType="schguitar">
+		SELECT g.* , p.price
+		FROM guitar g, price p
+		WHERE (g.GUITARID,p.PRICE) in (
+		SELECT g.GUITARID ,max(p.PRICE)
+		FROM guitar g, price p
+		WHERE g.GUITARID = p.GUITARID
+		GROUP BY p.GUITARID
+		<if test="guitarid !=null">
+		HAVING g.guitarid = #{guitarid}
+		</if>
+		<if test="guitarid !=null">
+		OR g.guitarid = #{guitarid1}
+		</if>
+		<if test="guitarid !=null">
+		OR g.guitarid = #{guitarid2}
+		</if>
+		)
+	</select>
+
+  </mapper>

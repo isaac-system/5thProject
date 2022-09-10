@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="team3.dao.RecDao">
+	<select id="listByStars" resultType="guitar">
+		SELECT g.guitarid, g.brand, g.gname, g.color, g.neck, g.bridge, g.standard, g.img, p.minprice, round(nvl(r.stars, 0), 2) stars
+		FROM guitar g, (
+			SELECT guitarid, avg(stars) stars
+			FROM review1
+			GROUP BY guitarid
+		) r, (
+			SELECT guitarid, min(price) minprice
+			FROM price
+			GROUP BY guitarid
+		) p
+		WHERE g.guitarid = r.guitarid(+)
+		AND g.guitarid = p.guitarid
+		ORDER BY stars DESC, guitarid asc
+	</select>
+	<select id="memRec" resultType="guitar" parameterType="member">
+		SELECT g.guitarid, g.brand, g.gname, g.color, g.neck, g.bridge,
+				g.standard, g.img, p.minprice, round(nvl(r.stars, 0), 2) stars
+		FROM guitar g, (
+			SELECT guitarid, avg(stars) stars
+			FROM review1
+			GROUP BY guitarid
+		) r, (
+			SELECT guitarid, min(price) minprice
+			FROM price
+			GROUP BY guitarid
+		) p
+		WHERE g.guitarid = r.guitarid(+)
+		AND g.guitarid = p.guitarid
+		<if test="standard != null">
+		AND g.standard = #{standard}
+		</if>
+		ORDER BY stars DESC, guitarid asc
+	</select>
+	<select id="revRec" resultType="guitar" parameterType="member">
+		SELECT g.guitarid, g.brand, g.gname, g.color, g.neck, g.bridge, g.standard, g.img, p.minprice, round(nvl(r.stars, 0), 2) stars
+		FROM guitar g, (
+			SELECT guitarid, avg(stars) stars
+			FROM review1 r, MEMBER m
+			WHERE r.userid = m.USERID 
+			AND r.userid &lt;&gt; #{userid}
+			<if test="standard != null">
+			AND m.STANDARD = #{standard}
+			</if>
+			GROUP BY guitarid
+		) r, (
+			SELECT guitarid, min(price) minprice
+			FROM price
+			GROUP BY guitarid
+		) p
+		WHERE g.guitarid = r.guitarid(+)
+		AND g.guitarid = p.guitarid
+		ORDER BY stars DESC, guitarid asc
+	</select>
+	<select id="getGuitar" resultType="guitar" parameterType="string">
+		SELECT g.guitarid, g.brand, g.gname, g.color, g.neck, g.bridge, g.standard, g.img, p.minprice
+		FROM guitar g, (
+			SELECT guitarid, min(price) minprice
+			FROM price
+			WHERE guitarid = #{guitarid}
+			GROUP BY guitarid
+		) p
+		WHERE g.guitarid = p.guitarid
+	</select>
+	<select id="getGuitarReview" resultType="review1" parameterType="string">
+		select m.id, m.name, r.stars, r.usercomment, m.standard
+		from review1 r, member m
+		where r.userid = m.userid
+		and guitarid = #{guitarid}
+	</select>
+	<select id="getSeller" resultType="seller" parameterType="string">
+		select s.sname, s.url, p.price
+		from seller s, price p
+		where s.sid = p.sid
+		and p.guitarid = #{guitarid}
+		order by price
+	</select>
+	<select id="mainRec" resultType="guitar">
+		SELECT rownum, g.*
+		FROM (	SELECT g.guitarid, g.brand, g.gname, g.color, g.neck, g.bridge, g.standard, g.img, p.minprice, round(nvl(r.stars, 0), 2) stars
+				FROM guitar g, (
+					SELECT guitarid, avg(stars) stars
+					FROM review1
+					GROUP BY guitarid
+				) r, (
+					SELECT guitarid, min(price) minprice
+					FROM price
+					GROUP BY guitarid
+				) p
+				WHERE g.guitarid = r.guitarid(+)
+				AND g.guitarid = p.guitarid
+				ORDER BY stars DESC, guitarid ASC) g
+		WHERE rownum &lt;= 3
+	</select>
+</mapper>
